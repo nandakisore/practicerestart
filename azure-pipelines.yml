@@ -1,26 +1,27 @@
-trigger:
-  branches:
-    include:
-      - main  # This pipeline triggers when changes are made to the main branch
+parameters:
+  - name: serviceDisplayName
+    type: string
+    default: 'YourServiceDisplayName'
 
-pool:
-  name: 'Default'  # Make sure to select the correct self-hosted agent pool
-
-steps:
+jobs:
+- job: Build
+  pool:
+    name: Pipeline
+    agent: DGA1AXST3IB
+  steps:
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
       script: |
-        # Replace with your service name
-        $serviceName = 'YourServiceName'
+        $serviceDisplayName = 'Russo'
 
-        # Check if the service exists
-        $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+        # Find the service by display name
+        $service = Get-Service | Where-Object { $_.DisplayName -eq $serviceDisplayName }
+
         if ($service) {
           # Restart the service
-          Restart-Service -Name $serviceName -Force
-          Write-Host "Service '$serviceName' has been restarted."
+          Restart-Service -Name $service.Name -Force
+          Write-Host "Service with Display Name '$serviceDisplayName' has been restarted."
         } else {
-          Write-Host "Service '$serviceName' not found."
-        }
-    displayName: 'Restart Service'
+          Write-Host "Service with Display Name '$serviceDisplayName' not found."
+    displayName: 'Restart Service by Display Name'
